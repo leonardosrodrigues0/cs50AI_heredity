@@ -139,7 +139,124 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+
+    # Number of genes in the given scenario.
+    genes = dict()
+    for person in people:
+        if person in one_gene:
+            genes[person] = 1
+
+        elif person in two_genes:
+            genes[person] = 2
+
+        else:
+            genes[person] = 0
+
+    prob_list = []
+
+    for person in people:
+        prob = 1
+
+        # Two genes in the scenario:
+        if genes[person] == 2:
+
+            # Has parents:
+            if people[person]["mother"] and people[person]["father"]:
+
+                for parent in [people[person]["mother"], people[person]["father"]]:
+
+                    if genes[parent] == 2:
+                        prob *= 1 - PROBS["mutation"]
+                    
+                    elif genes[parent] == 1:
+                        prob *= 0.5 # Mutations cancel out in this case
+
+                    else:
+                        prob *= PROBS["mutation"]
+                    
+            # Has no parents:
+            else:
+                prob *= PROBS["gene"][2]
+        
+        # One gene in the scenario:
+        elif genes[person] == 1:
+            
+            # Has parents:
+            if people[person]["mother"] and people[person]["father"]:
+
+                sum = genes[people[person]["mother"]] + genes[people[person]["father"]]
+                
+                if sum == 4:
+                    prob *= 2 * PROBS["mutation"] * (1 - PROBS["mutation"])
+
+                elif sum == 3:
+                    prob *= 0.5 # All mutations cancel out
+
+                elif sum == 2:
+                    
+                    if genes[people[person]["mother"]] == 1:
+                        prob *= 0.5 # All mutations cancel out
+
+                    else:
+                        prob *= 1 - 2 * PROBS["mutation"] + 2 * PROBS["mutation"]**2
+
+                elif sum == 1:
+                    prob *= 0.5 # All mutations cancel out
+
+            # Has no parents:
+            else:
+                prob *= PROBS["gene"][1]
+
+        # Zero gene in the scenario:
+        else:
+            
+            # Has parents:
+            if people[person]["mother"] and people[person]["father"]:
+                
+                for parent in [people[person]["mother"], people[person]["father"]]:
+
+                    if genes[parent] == 2:
+                        prob *= PROBS["mutation"]
+
+                    elif genes[parent] == 1:
+                        prob *= 0.5
+
+                    else:
+                        prob *= 1 - PROBS["mutation"]
+
+            # Has no parents:
+            else:
+                prob *= PROBS["gene"][0]
+
+        # Traits:
+        prob *= PROBS["trait"][genes[person]][person in have_trait]        
+        
+        # # Has trait in the scenario:
+        # if person in have_trait:
+
+        #     if people[person]["trait"] is None:
+        #         prob *= PROBS["trait"][genes[person]][True]
+
+        #     elif people[person]["trait"] == False:
+        #         prob *= 0
+        
+        # # No trait in the scenario:
+        # else:
+
+        #     if people[person]["trait"] is None:
+        #         prob *= PROBS["trait"][genes[person]][False]
+
+        #     elif people[person]["trait"] == True:
+        #         prob *= 0
+
+        print(prob)
+        prob_list.append(prob)
+
+    joint = 1
+    for prob in prob_list:
+        joint *= prob
+
+    return joint
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
