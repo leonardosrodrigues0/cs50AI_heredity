@@ -39,10 +39,12 @@ PROBS = {
 
 def main():
 
-    # Check for proper usage
-    if len(sys.argv) != 2:
-        sys.exit("Usage: python heredity.py data.csv")
-    people = load_data(sys.argv[1])
+    # # Check for proper usage
+    # if len(sys.argv) != 2:
+    #     sys.exit("Usage: python heredity.py data.csv")
+    # people = load_data(sys.argv[1])
+
+    people = load_data("data/family0.csv")
 
     # Keep track of gene and trait probabilities for each person
     probabilities = {
@@ -128,6 +130,26 @@ def powerset(s):
     ]
 
 
+def genes_dict(people, one_gene, two_genes):
+    """
+    Returns a dictionary that maps each person to the
+    number of genes based on one_gene and two_genes set.
+    """
+    genes = dict()
+
+    for person in people:
+        if person in one_gene:
+            genes[person] = 1
+
+        elif person in two_genes:
+            genes[person] = 2
+
+        else:
+            genes[person] = 0
+
+    return genes
+
+
 def joint_probability(people, one_gene, two_genes, have_trait):
     """
     Compute and return a joint probability.
@@ -141,16 +163,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     """
 
     # Number of genes in the given scenario.
-    genes = dict()
-    for person in people:
-        if person in one_gene:
-            genes[person] = 1
-
-        elif person in two_genes:
-            genes[person] = 2
-
-        else:
-            genes[person] = 0
+    genes = genes_dict(people, one_gene, two_genes)
 
     prob_list = []
 
@@ -229,27 +242,8 @@ def joint_probability(people, one_gene, two_genes, have_trait):
                 prob *= PROBS["gene"][0]
 
         # Traits:
-        prob *= PROBS["trait"][genes[person]][person in have_trait]        
-        
-        # # Has trait in the scenario:
-        # if person in have_trait:
+        prob *= PROBS["trait"][genes[person]][person in have_trait]
 
-        #     if people[person]["trait"] is None:
-        #         prob *= PROBS["trait"][genes[person]][True]
-
-        #     elif people[person]["trait"] == False:
-        #         prob *= 0
-        
-        # # No trait in the scenario:
-        # else:
-
-        #     if people[person]["trait"] is None:
-        #         prob *= PROBS["trait"][genes[person]][False]
-
-        #     elif people[person]["trait"] == True:
-        #         prob *= 0
-
-        print(prob)
         prob_list.append(prob)
 
     joint = 1
@@ -266,7 +260,12 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    
+    genes = genes_dict(probabilities, one_gene, two_genes)
+
+    for person in probabilities:
+        probabilities[person]["gene"][genes[person]] += p
+        probabilities[person]["trait"][person in have_trait] += p
 
 
 def normalize(probabilities):
@@ -274,7 +273,16 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+    
+    for person in probabilities:
+        for dist in probabilities[person]:
+            sum = 0
+
+            for value in probabilities[person][dist]:
+                sum += probabilities[person][dist][value]
+            
+            for value in probabilities[person][dist]:
+                probabilities[person][dist][value] /= sum
 
 
 if __name__ == "__main__":
