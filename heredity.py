@@ -39,12 +39,10 @@ PROBS = {
 
 def main():
 
-    # # Check for proper usage
-    # if len(sys.argv) != 2:
-    #     sys.exit("Usage: python heredity.py data.csv")
-    # people = load_data(sys.argv[1])
-
-    people = load_data("data/family0.csv")
+    # Check for proper usage
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python heredity.py data.csv")
+    people = load_data(sys.argv[1])
 
     # Keep track of gene and trait probabilities for each person
     probabilities = {
