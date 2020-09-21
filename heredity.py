@@ -165,7 +165,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     # Number of genes in the given scenario.
     genes = genes_dict(people, one_gene, two_genes)
 
-    prob_list = []
+    joint = 1
 
     for person in people:
         prob = 1
@@ -199,7 +199,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
 
                 sum = genes[people[person]["mother"]] + genes[people[person]["father"]]
                 
-                if sum == 4:
+                if sum == 4 or sum == 0:
                     prob *= 2 * PROBS["mutation"] * (1 - PROBS["mutation"])
 
                 elif sum == 3:
@@ -215,6 +215,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
 
                 elif sum == 1:
                     prob *= 0.5 # All mutations cancel out
+
 
             # Has no parents:
             else:
@@ -244,10 +245,6 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         # Traits:
         prob *= PROBS["trait"][genes[person]][person in have_trait]
 
-        prob_list.append(prob)
-
-    joint = 1
-    for prob in prob_list:
         joint *= prob
 
     return joint
